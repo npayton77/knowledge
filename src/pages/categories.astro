@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts');
+const categories = [...new Set(posts.map(p => p.data.category))].sort();
+
+const categoryCounts = categories.map(cat => ({
+  name: cat,
+  count: posts.filter(p => p.data.category === cat).length,
+}));
+---
+
+<Base title="Categories">
+  <h1 class="page-heading">Categories</h1>
+  <p class="page-subheading">Browse posts by topic</p>
+
+  <div class="category-nav">
+    {categoryCounts.map(({ name, count }) => (
+      <a href={`/category/${name}`}>{name} ({count})</a>
+    ))}
+  </div>
+</Base>

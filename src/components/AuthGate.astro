@@ -1,0 +1,48 @@
+---
+/**
+ * Auth gate component - wraps page content and shows login if not authenticated.
+ * Uses client-side JS to check Amplify auth state.
+ */
+---
+
+<div id="auth-container">
+  <div id="auth-loading" class="auth-gate">
+    <p style="color: var(--text-muted);">loading...</p>
+  </div>
+  <div id="auth-login" class="auth-gate" style="display: none;">
+    <h1>~/knowledge</h1>
+    <p>Private knowledge base. Sign in to continue.</p>
+    <button id="login-btn" class="btn btn-primary">
+      Sign in with Google
+    </button>
+  </div>
+  <div id="auth-content" style="display: none;">
+    <slot />
+  </div>
+</div>
+
+<script>
+  import { signInWithRedirect, getCurrentUser, signOut } from 'aws-amplify/auth';
+  import '../lib/auth';
+
+  async function checkAuth() {
+    const loading = document.getElementById('auth-loading')!;
+    const login = document.getElementById('auth-login')!;
+    const content = document.getElementById('auth-content')!;
+
+    try {
+      await getCurrentUser();
+      loading.style.display = 'none';
+      content.style.display = 'block';
+    } catch {
+      loading.style.display = 'none';
+      login.style.display = 'flex';
+    }
+  }
+
+  document.getElementById('login-btn')?.addEventListener('click', () => {
+    signInWithRedirect({ provider: 'Google' });
+  });
+
+  checkAuth();
+</script>

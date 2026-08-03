@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Knowledge Base GitHub API
+  description: Commit markdown posts to the knowledge base repository
+  version: 1.0.0
+servers:
+  - url: https://api.github.com
+    description: GitHub API
+
+paths:
+  /repos/npayton77/knowledge/contents/src/content/posts/{filename}:
+    put:
+      operationId: createPost
+      summary: Create or update a post in the knowledge base
+      description: Commits a markdown file to the knowledge base repository which triggers an auto-deploy.
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          description: The filename for the post (kebab-case, ending in .md)
+          schema:
+            type: string
+            example: understanding-vpc-peering.md
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - content
+              properties:
+                message:
+                  type: string
+                  description: Git commit message
+                  example: "post: Understanding VPC Peering"
+                content:
+                  type: string
+                  description: Base64 encoded file content (the full markdown with frontmatter)
+                  example: "LS0tCnRpdGxlOiAiRXhhbXBsZSIK..."
+                branch:
+                  type: string
+                  description: Branch to commit to
+                  default: main
+                sha:
+                  type: string
+                  description: SHA of the file being replaced (required for updates, omit for new files)
+      responses:
+        "201":
+          description: File created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      path:
+                        type: string
+                      html_url:
+                        type: string
+                  commit:
+                    type: object
+                    properties:
+                      sha:
+                        type: string
+                      message:
+                        type: string
+        "200":
+          description: File updated successfully
+        "422":
+          description: Validation error (file may already exist - need sha parameter)
+
+    get:
+      operationId: getPost
+      summary: Get an existing post (to retrieve its SHA for updates)
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sha:
+                    type: string
+                  name:
+                    type: string
+                  content:
+                    type: string
+                    description: Base64 encoded file content
+        "404":
+          description: File not found

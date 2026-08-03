@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+const categories = [...new Set(posts.map(p => p.data.category))].sort();
+---
+
+<Base title="Knowledge">
+  <div class="category-nav">
+    <a href="/" class="active">all</a>
+    {categories.map(cat => (
+      <a href={`/category/${cat}`}>{cat}</a>
+    ))}
+  </div>
+
+  <div class="post-list">
+    {posts.map(post => (
+      <a href={`/posts/${post.id.replace(/\.md$/, '')}`} class="post-item">
+        <div class="post-item-header">
+          <span class="post-item-title">{post.data.title}</span>
+          <span class="post-item-date">{post.data.date}</span>
+        </div>
+        <div class="post-item-meta">
+          <span class="category-badge">{post.data.category}</span>
+          {post.data.source !== 'manual' && (
+            <span class="source-indicator">via {post.data.source}</span>
+          )}
+        </div>
+        {post.data.summary && (
+          <p class="post-item-summary">{post.data.summary}</p>
+        )}
+      </a>
+    ))}
+  </div>
+</Base>
